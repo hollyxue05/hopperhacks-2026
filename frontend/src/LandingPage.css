@@ -140,3 +140,44 @@ input:focus {
 .button{
   margin-left: auto;
 }
+
+.schedule-button {
+  /* Base styles to maintain layout */
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative; /* Needed for smooth rendering */
+
+  /* Smooth transition for the shadow and lift effect */
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Initial subtle shadow (matching your original design) */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Hover State: Lift the button and increase shadow blur */
+.schedule-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Active (Click) State: Press the button down and reduce shadow */
+.schedule-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background-color: #f9fafb; /* Slightly gray background on press */
+}
+
+/* Focus State for accessibility */
+.schedule-button:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}

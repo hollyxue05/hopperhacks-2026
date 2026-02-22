@@ -13,7 +13,6 @@ function LandingPage() {
   const [currentDestination, setCurrentDestination] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
-
   const handleSearch = async (searchParams) => {
     setLoading(true);
     setError(null);
@@ -40,18 +39,16 @@ function LandingPage() {
     }
   };
 
+  const handleTripSelection = (trip) => {
+    // Placeholder for what happens when a user selects a specific trip schedule
+    console.log("Trip selected:", trip);
+  };
+
   return (
-
     <div className={darkMode ? "landingpage dark" : "landingpage light"}>
-      <div >
-
+      <div>
         <div className="welcome-container">
-          <h1 className="welcome">Welcome</h1>
-          <img
-              src={darkMode ? darkImg : lightImg}
-              alt="Theme image"
-              className="theme-image"
-            />
+          <h1 className="welcome">Welcome to RailroadRouter</h1>
             <div className="button">
               <button onClick={() => setDarkMode(!darkMode)}>
                 Toggle {darkMode ? "Light" : "Dark"} Mode
@@ -60,9 +57,7 @@ function LandingPage() {
         </div>
       </div>
 
-
       <div className="map-and-tripInfo">
-
         <div className="map-container">
           <MapBackground />
         </div>
@@ -86,7 +81,12 @@ function LandingPage() {
                 const isAmtrakFirst = trip.leg_type === "amtrak_first";
 
                 return (
-                  <div key={idx} style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                  /* Inline styles removed here and replaced with className */
+                  <button 
+                    key={idx} 
+                    onClick={() => handleTripSelection(trip)}
+                    className="schedule-button"
+                  >
                     {isAmtrakFirst ? (
                       <>
                         <div style={{ backgroundColor: '#1e3a8a', color: 'white', padding: '15px' }}>
@@ -133,7 +133,7 @@ function LandingPage() {
                         </div>
                       </>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -238,8 +238,6 @@ function UserInput({ onSearch, loading }) {
           {loading ? 'Searching...' : 'Find Schedule'}
         </button>
       </form>
-
-      
     </div>
   );
 }
