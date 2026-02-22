@@ -6,7 +6,11 @@
   margin: 0 auto; 
 }
 
-.map-container,
+.map-container{
+  flex: 1;
+  border-radius: 15px;
+}
+
 .trip-container{
   flex: 1;
   padding: 2rem;
@@ -83,8 +87,8 @@ input:focus {
 
 /* Light mode */
 .landingpage.light {
-  background-color: white;
-  color: black;
+  background-color: rgb(217, 234, 247);
+  color: rgb(55, 5, 5);
 }
 
 /* Dark mode */
@@ -122,19 +126,23 @@ input:focus {
 }
 
 .landingpage.dark .schedule-list-container {
-  background-color: #fca311;
+  background-color: #fabb55;
   /* #033c60; */
 }
 
 .welcome-container {
+  /* font-family: 'Papyrus', fantasy; */
   display: flex;           /* side by side */
   align-items: center;     /* vertically center */
   gap: 1rem;               /* space between text and image */
 }
 
 .theme-image {
-  width: 80px;             /* adjust as needed */
+  width: 300px;
   height: auto;
+  margin: 0;
+  padding: 0;
+  display: block; /* removes small bottom whitespace */
 }
 
 .button{

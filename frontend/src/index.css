@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Papyrus', fantasy;
   line-height: 1.5;
   font-weight: 400;
 
@@ -64,5 +64,25 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+.trail-dot {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: yellow; /* change to 'yellow' if you want yellow */
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: fadeOut 0.5s linear forwards;
+  box-shadow: 0 0 12px white; /* glow effect, match color */
+  z-index: 9999;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
   }
 }
