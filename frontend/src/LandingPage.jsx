@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './LandingPage.css'
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import MapBackground from './MapBackground';
 
@@ -39,7 +38,7 @@ function LandingPage() {
     <div className = "map-and-tripInfo">
      
       <div className= "map-container">
-        <MapBackground />
+          <MapBackground />       
       </div> 
 
       <div className= "trip-container"> 
@@ -162,9 +161,10 @@ function UserInput({ onSearch, loading }) {
           >
             <option value="">Select a Buffer Time</option>
             <option value={15}>15 min</option>
-            <option value={20}>20 min</option>
             <option value={30}>30 min</option>
             <option value={45}>45 min</option>
+            <option value={60}>1 hour </option>
+            <option value={120}>2 hours </option>
           </select>
         </div>
 
