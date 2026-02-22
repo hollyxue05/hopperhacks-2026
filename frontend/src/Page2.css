@@ -1,0 +1,24 @@
+
+.station-header-w-time{
+  display: flex;             /* Turns on flexbox */
+  justify-content: space-between; /* Pushes name to left, time to right */
+  align-items: center;       /* Vertically centers the text so they line up */
+  padding: 10px 0;           /* Adds a little breathing room top/bottom */
+ 
+}
+
+.station-time {
+  font-weight: bold;
+  color: #90b8e1;            /* Gives the time a distinct color */
+  font-size: 1.1rem;
+}
+
+.each-stop li{
+border-left: 2px solid #ccc; /* The vertical "track" line */
+  padding-left: 15px;          /* Space between the line and the station name */
+  padding-bottom: 20px;        /* Vertical space between stops */
+  position: relative;          /* Needed if you want to add dots later */
+}
+
+
+
