@@ -4,7 +4,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import MapBackground from './MapBackground';
 
-
 function LandingPage() {
   // const [count, setCount] = useState(0)
 
@@ -17,14 +16,12 @@ function LandingPage() {
      
       <div className= "map-container">
         <MapBackground />
+       
       </div> 
 
       <div className= "trip-container"> 
         <h2>Plan your Trip</h2>
-        <UserInput /> 
-          <div className = "schedule-list-container">
-            <h1>schedule goes here</h1>
-          </div>      
+        <UserInput />     
       </div>
     </div>
   </div>

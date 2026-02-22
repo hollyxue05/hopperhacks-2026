@@ -2,44 +2,39 @@
   display: flex;
   width: 100vw;         /* Full width of the screen */
   min-height: 100vh;    /* Full height of the screen */
-  margin: 0;
-  padding: 0;
-}
-
-.map-container{
-  flex: 1;
-  background: rgb(221, 204, 204);
-
-}
-
-.trip-container {
-  flex: 1;
-  background: white;
-  padding: 2rem;
+  margin: 15px;
+  padding: 15;
+  background: rgb(224, 218, 218);
   border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  max-width: 450px;
-  margin: 20px;
-  justify-content: right;
+
+}
+
+.map-container {
+  flex: 1;
+  background: rgb(224, 218, 218);
+  padding: 2rem;
+  padding-top: 5px;
+  border-radius: 15px;
+  height: 650px;
+  margin: 15px;
+}
+
+.trip-container{
+ flex: 1;
+  background: rgb(200, 180, 180);
+  padding: 2rem;
+  padding-top: 5px;
+  border-radius: 15px;
+  height: 650px;
+  margin: 15px;
 }
 
 .trip-input-container {
-  background: rgb(162, 231, 251);
+  background: rgb(222, 214, 214);
   padding: 2rem;
   border-radius: 15px;
-  max-width: 450px;
   margin: 5px;
 }
-
-.schedule-list-container{
-  background: rgb(195, 183, 239);
-  padding: 2rem;
-  border-radius: 15px;
-  max-width: 450px;
-  margin: 5px;
-  justify-content: right;
-}
-
 .input-group {
   margin-bottom: 1.2rem;
   display: flex;
