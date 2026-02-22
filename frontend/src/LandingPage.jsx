@@ -2,6 +2,8 @@ import { useState } from 'react'
 import './LandingPage.css'
 import "react-datepicker/dist/react-datepicker.css";
 import MapBackground from './MapBackground';
+import lightImg from './images/light-image.png';
+import darkImg from './images/dark-image.png'; 
 
 function LandingPage() {
   const [results, setResults] = useState(null);
@@ -9,6 +11,8 @@ function LandingPage() {
   const [error, setError] = useState(null);
   const [currentOrigin, setCurrentOrigin] = useState("");
   const [currentDestination, setCurrentDestination] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
+
 
   const handleSearch = async (searchParams) => {
     setLoading(true);
@@ -38,8 +42,25 @@ function LandingPage() {
 
   return (
 
-    <div className="landing-page">
-      <h1 className="welcome">Welcome</h1>
+    <div className={darkMode ? "landingpage dark" : "landingpage light"}>
+      <div >
+
+        <div className="welcome-container">
+          <h1 className="welcome">Welcome</h1>
+          <img
+              src={darkMode ? darkImg : lightImg}
+              alt="Theme image"
+              className="theme-image"
+            />
+            <div className="button">
+              <button onClick={() => setDarkMode(!darkMode)}>
+                Toggle {darkMode ? "Light" : "Dark"} Mode
+              </button>
+            </div>
+        </div>
+      </div>
+
+
       <div className="map-and-tripInfo">
 
         <div className="map-container">
@@ -217,6 +238,8 @@ function UserInput({ onSearch, loading }) {
           {loading ? 'Searching...' : 'Find Schedule'}
         </button>
       </form>
+
+      
     </div>
   );
 }
