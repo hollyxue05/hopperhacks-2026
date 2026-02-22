@@ -2,11 +2,10 @@
   display: flex;
   width: 100vw;         /* Full width of the screen */
   min-height: 100vh;    /* Full height of the screen */
-  margin: 15px;
+  margin: px;
   padding: 15;
   background: rgb(224, 218, 218);
   border-radius: 15px;
-
 }
 
 .map-container {
@@ -20,21 +19,28 @@
 }
 
 .trip-container{
- flex: 1;
+  flex: 1;
   background: rgb(200, 180, 180);
   padding: 2rem;
   padding-top: 5px;
   border-radius: 15px;
-  height: 650px;
   margin: 15px;
 }
 
 .trip-input-container {
+  background: rgb(225, 154, 154);
+  padding: 2rem;
+  border-radius: 15px;
+  margin: 5px;
+}
+
+.schedule-list-container{
   background: rgb(222, 214, 214);
   padding: 2rem;
   border-radius: 15px;
   margin: 5px;
 }
+
 .input-group {
   margin-bottom: 1.2rem;
   display: flex;
@@ -57,7 +63,7 @@ input, select {
 
 input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #5456d2;
 }
 
 .flex-row {
@@ -67,7 +73,7 @@ input:focus {
 
 .btn-submit {
   width: 100%;
-  background: #6366f1;
+  background: #161883;
   color: white;
   padding: 14px;
   border: none;
