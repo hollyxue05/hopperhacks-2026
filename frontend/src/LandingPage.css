@@ -1,11 +1,45 @@
-.container {
+.map-and-tripInfo{
+  display: flex;
+  width: 100vw;         /* Full width of the screen */
+  min-height: 100vh;    /* Full height of the screen */
+  margin: 0;
+  padding: 0;
+}
+
+.map-container{
+  flex: 1;
+  background: rgb(221, 204, 204);
+
+}
+
+.trip-container {
+  flex: 1;
   background: white;
   padding: 2rem;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   max-width: 450px;
-  margin: 2rem auto;
+  margin: 20px;
+  justify-content: right;
 }
+
+.trip-input-container {
+  background: rgb(216, 194, 194);
+  padding: 2rem;
+  border-radius: 15px;
+  max-width: 450px;
+  margin: 5px;
+}
+
+.schedule-list-container{
+  background: rgb(216, 194, 194);
+  padding: 2rem;
+  border-radius: 15px;
+  max-width: 450px;
+  margin: 5px;
+  justify-content: right;
+}
+
 .input-group {
   margin-bottom: 1.2rem;
   display: flex;

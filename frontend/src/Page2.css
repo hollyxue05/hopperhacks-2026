@@ -1,10 +1,18 @@
 
+.schedule{
+  margin: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+
 .station-header-w-time{
   display: flex;             /* Turns on flexbox */
   justify-content: space-between; /* Pushes name to left, time to right */
   align-items: center;       /* Vertically centers the text so they line up */
   padding: 10px 0;           /* Adds a little breathing room top/bottom */
- 
 }
 
 .station-time {

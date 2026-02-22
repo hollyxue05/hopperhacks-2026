@@ -9,18 +9,32 @@ function LandingPage() {
 
 
   return (
-    <>
-    <div>
-      <h1>Welcome</h1>
-      <UserInput />
+    
+  <div className = "landing-page">
+    <h1>Welcome</h1>
+    <div className = "map-and-tripInfo">
+     
+      <div className= "map-container">
+        <p>map goes here</p>
+        </div> 
+
+      <div className= "trip-container"> 
+        <h1>Plan your Trip</h1>
+        <UserInput /> 
+          <div className = "schedule-list-container">
+            <h1>schedule goes here</h1>
+          </div>      
+      </div>
     </div>
+  </div>
       
 
       
-    </>
+
   );
 }
 
+/** function for trip input*/
 function UserInput() {
 //inputs
   const [from, setFrom] = useState("");
@@ -30,8 +44,7 @@ function UserInput() {
 
   <h>test</h>
   return (
-    <div className= "container">
-      <h1>Plan your Trip</h1>
+    <div className= "trip-input-container">
       <form>
         <div className= "input-group">
           <label>From:</label>
