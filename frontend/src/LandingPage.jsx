@@ -219,7 +219,7 @@ function UserInput({ onSearch, loading }) {
         </div>
 
         <div style={groupStyle}>
-          <label style={labelStyle}>Penn Station Buffer Time:</label>
+          <label style={labelStyle}>Penn Station Transition Time:</label>
           <select value={bufferTime} onChange={(e) => setBufferTime(e.target.value)} required style={inputStyle}>
             <option value="">Select a Minimum Layover</option>
             <option value={15}>15 minutes</option>
