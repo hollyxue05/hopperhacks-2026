@@ -1,6 +1,6 @@
 .map-box {
   width: 800px;          /* width of your map box */
-  height: 680px;         /* height of your map box */
+  height: 980px;         /* height of your map box */
   border: 2px solid #ccc;
   border-radius: 8px;
   overflow: hidden;      /* ensures map stays inside box */

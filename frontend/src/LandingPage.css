@@ -4,6 +4,7 @@
   padding: 20px;
   max-width: 1400px;         /* prevents full screen stretch */
   margin: 0 auto; 
+  
 }
 
 .map-container{
@@ -131,10 +132,22 @@ input:focus {
 }
 
 .welcome-container {
-  /* font-family: 'Papyrus', fantasy; */
-  display: flex;           /* side by side */
-  align-items: center;     /* vertically center */
-  gap: 1rem;               /* space between text and image */
+  display: flex;
+  align-items: center; /* vertically center items if desired */
+  gap: 20px;           /* space between text and image */
+}
+
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-subtext {
+  margin-top: 10px;   /* space below h1 */
+  font-size: 1rem;
+  font-style: italic;
+  color: #aa8b18;
+  padding-left: 12px;
 }
 
 .theme-image {
@@ -189,3 +202,4 @@ input:focus {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
+
