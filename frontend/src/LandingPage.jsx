@@ -5,6 +5,88 @@ import MapBackground from './MapBackground';
 import lightImg from './images/light-image.png';
 import darkImg from './images/dark-image.png'; 
 
+// Dictionary to translate GTFS/Database IDs to readable names
+const stationMap = {
+  // Transfer Hubs & Terminals
+  "105": "Penn Station",
+  "237": "Penn Station", 
+  "NYP": "New York Penn Station",
+  "102": "Jamaica", 
+  "214": "Woodside", 
+  "54": "Woodside",
+  "55": "Forest Hills", 
+  "56": "Forest Hills",
+  "107": "Kew Gardens", 
+
+  // Port Jefferson & Ronkonkoma Shared Stops
+  "132": "Mineola", 
+  "39": "Carle Place", 
+  "213": "Westbury", 
+  "92": "Hicksville", 
+
+  // Port Jefferson Branch
+  "205": "Syosset", 
+  "40": "Cold Spring Harbor", 
+  "91": "Huntington", 
+  "78": "Greenlawn", 
+  "153": "Northport", 
+  "111": "Kings Park", 
+  "202": "Smithtown", 
+  "193": "St. James", 
+  "14": "Stony Brook", 
+  "164": "Port Jefferson", 
+
+  // Ronkonkoma Branch
+  "20": "Bethpage", 
+  "59": "Farmingdale", 
+  "165": "Pinelawn", 
+  "220": "Wyandanch", 
+  "44": "Deer Park", 
+  "29": "Brentwood", 
+  "33": "Central Islip", 
+  "179": "Ronkonkoma", 
+
+  // Amtrak Stations
+  // Amtrak Northeast Regional Stops (BOS to WAS)
+  "BOS": "Boston South Station",
+  "BBY": "Boston Back Bay",
+  "RTE": "Route 128",
+  "PVD": "Providence",
+  "KIN": "Kingston",
+  "WLY": "Westerly",
+  "MYS": "Mystic",
+  "NLC": "New London",
+  "OSW": "Old Saybrook",
+  "NHV": "New Haven Union Station",
+  "BDP": "Bridgeport",
+  "STM": "Stamford",
+  "NRO": "New Rochelle",
+  "NWK": "Newark Penn Station",
+  "EWR": "Newark Airport",
+  "MET": "Metropark",
+  "NBK": "New Brunswick",
+  "PNC": "Princeton Junction",
+  "TRE": "Trenton",
+  "PHL": "Philadelphia 30th Street",
+  "WIL": "Wilmington",
+  "NWB": "Newark (DE)",
+  "ABD": "Aberdeen",
+  "BAL": "Baltimore Penn Station",
+  "BWI": "BWI Marshall Airport",
+  "NCR": "New Carrollton",
+  "WAS": "Washington DC Union"
+};
+
+const formatStationName = (stopId) => {
+  const idString = String(stopId);
+  for (const key in stationMap) {
+    if (idString.startsWith(key)) {
+      return stationMap[key];
+    }
+  }
+  return `Station Code: ${idString}`;
+};
+
 function LandingPage() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,9 +95,14 @@ function LandingPage() {
   const [currentDestination, setCurrentDestination] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
+  // State variables for trip details
+  const [tripDetails, setTripDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
   const handleSearch = async (searchParams) => {
     setLoading(true);
     setError(null);
+    setTripDetails(null);
     setCurrentOrigin(searchParams.origin);
     setCurrentDestination(searchParams.destination);
 
@@ -39,9 +126,55 @@ function LandingPage() {
     }
   };
 
-  const handleTripSelection = (trip) => {
-    // Placeholder for what happens when a user selects a specific trip schedule
-    console.log("Trip selected:", trip);
+  const handleTripSelection = async (trip) => {
+    setDetailsLoading(true);
+    
+    const isAmtrakFirst = trip.leg_type === "amtrak_first";
+    
+    const primaryAgency = isAmtrakFirst ? "amtrak" : "lirr";
+    const primaryTripId = isAmtrakFirst ? trip.amtrak_trip.train_num : trip.lirr_trip.trip_id;
+    
+    const secondaryAgency = isAmtrakFirst ? "lirr" : "amtrak";
+    // Default to displaying the first connection option
+    const firstConnection = trip.connections[0];
+    const secondaryTripId = firstConnection.train_num;
+
+    try {
+      // Fetch both legs concurrently
+      const [primaryRes, secondaryRes] = await Promise.all([
+        fetch('http://localhost:5000/api/details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trip_id: primaryTripId, agency: primaryAgency }),
+        }),
+        fetch('http://localhost:5000/api/details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trip_id: secondaryTripId, agency: secondaryAgency }),
+        })
+      ]);
+
+      const primaryStops = primaryRes.ok ? await primaryRes.json() : [];
+      const secondaryStops = secondaryRes.ok ? await secondaryRes.json() : [];
+
+      setTripDetails({ 
+        tripInfo: trip, 
+        primaryStops: primaryStops, 
+        secondaryStops: secondaryStops,
+        primaryAgency: primaryAgency,
+        secondaryAgency: secondaryAgency,
+        connectionInfo: firstConnection
+      });
+        
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 100);
+      
+    } catch (err) {
+      console.error('Failed to fetch detailed stops', err);
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
   return (
@@ -81,7 +214,6 @@ function LandingPage() {
                 const isAmtrakFirst = trip.leg_type === "amtrak_first";
 
                 return (
-                  /* Inline styles removed here and replaced with className */
                   <button 
                     key={idx} 
                     onClick={() => handleTripSelection(trip)}
@@ -140,6 +272,76 @@ function LandingPage() {
           </div>
         </div>
       </div>
+
+      {(detailsLoading || tripDetails) && (
+        <div style={{ padding: '40px 20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+          <hr style={{ border: 'none', borderTop: '2px solid #e5e7eb', marginBottom: '40px' }} />
+          
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: darkMode ? 'white' : 'black' }}>
+            Full Itinerary Stops
+          </h2>
+          
+          {detailsLoading ? (
+             <p style={{ color: '#4b5563' }}>Loading stop details...</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+               
+               {/* Primary Leg */}
+               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                 <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
+                   Leg 1: {tripDetails.primaryAgency.toUpperCase()} 
+                 </h3>
+                 {tripDetails.primaryStops.length > 0 ? (
+                   <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                     {tripDetails.primaryStops.map((stop, idx) => (
+                       <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.primaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                         <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
+                           {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
+                         </span>
+                         <span style={{ color: '#111827' }}>
+                           {formatStationName(stop.stop_id)}
+                         </span>
+                       </li>
+                     ))}
+                   </ul>
+                 ) : (
+                   <p>No detailed stop data is available for this leg.</p>
+                 )}
+               </div>
+
+               {/* Transfer Indicator */}
+               <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '8px', color: '#4b5563', fontWeight: 'bold' }}>
+                 Transfer at Penn Station
+               </div>
+
+               {/* Secondary Leg */}
+               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                 <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
+                   Leg 2: {tripDetails.secondaryAgency.toUpperCase()} Train {tripDetails.connectionInfo.train_num}
+                 </h3>
+                 {tripDetails.secondaryStops.length > 0 ? (
+                   <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                     {tripDetails.secondaryStops.map((stop, idx) => (
+                       <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.secondaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                         <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
+                           {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
+                         </span>
+                         <span style={{ color: '#111827' }}>
+                           {formatStationName(stop.stop_id)}
+                         </span>
+                       </li>
+                     ))}
+                   </ul>
+                 ) : (
+                   <p>No detailed stop data is available for this leg.</p>
+                 )}
+               </div>
+
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
@@ -168,6 +370,62 @@ function UserInput({ onSearch, loading }) {
   const labelStyle = { display: 'block', fontWeight: '600', marginBottom: '8px', color: '#374151' };
   const groupStyle = { marginBottom: '20px' };
 
+  const lirrStations = [
+    { value: "20", label: "Bethpage" },
+    { value: "29", label: "Brentwood" },
+    { value: "39", label: "Carle Place" },
+    { value: "33", label: "Central Islip" },
+    { value: "40", label: "Cold Spring Harbor" },
+    { value: "44", label: "Deer Park" },
+    { value: "59", label: "Farmingdale" },
+    { value: "78", label: "Greenlawn" },
+    { value: "92", label: "Hicksville" },
+    { value: "91", label: "Huntington" },
+    { value: "102", label: "Jamaica" },
+    { value: "111", label: "Kings Park" },
+    { value: "132", label: "Mineola" },
+    { value: "153", label: "Northport" },
+    { value: "165", label: "Pinelawn" },
+    { value: "164", label: "Port Jefferson" },
+    { value: "179", label: "Ronkonkoma" },
+    { value: "202", label: "Smithtown" },
+    { value: "193", label: "St. James" },
+    { value: "14", label: "Stony Brook" },
+    { value: "205", label: "Syosset" },
+    { value: "213", label: "Westbury" },
+    { value: "220", label: "Wyandanch" }
+  ];
+
+  const amtrakStations = [
+    { value: "ABD", label: "Aberdeen" },
+    { value: "BAL", label: "Baltimore Penn Station" },
+    { value: "BBY", label: "Boston Back Bay" },
+    { value: "BOS", label: "Boston South Station" },
+    { value: "BDP", label: "Bridgeport" },
+    { value: "BWI", label: "BWI Marshall Airport" },
+    { value: "KIN", label: "Kingston" },
+    { value: "MET", label: "Metropark" },
+    { value: "MYS", label: "Mystic" },
+    { value: "NBK", label: "New Brunswick" },
+    { value: "NCR", label: "New Carrollton" },
+    { value: "NHV", label: "New Haven Union Station" },
+    { value: "NLC", label: "New London" },
+    { value: "NRO", label: "New Rochelle" },
+    { value: "NWB", label: "Newark (DE)" },
+    { value: "EWR", label: "Newark Airport" },
+    { value: "NWK", label: "Newark Penn Station" },
+    { value: "OSW", label: "Old Saybrook" },
+    { value: "PHL", label: "Philadelphia 30th Street" },
+    { value: "PNC", label: "Princeton Junction" },
+    { value: "PVD", label: "Providence" },
+    { value: "RTE", label: "Route 128" },
+    { value: "STM", label: "Stamford" },
+    { value: "TRE", label: "Trenton" },
+    { value: "WAS", label: "Washington DC Union" },
+    { value: "WLY", label: "Westerly" },
+    { value: "WIL", label: "Wilmington" }
+  ];
+
   return (
     <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
       <form onSubmit={handleSubmit}>
@@ -176,15 +434,14 @@ function UserInput({ onSearch, loading }) {
           <select value={from} onChange={(e) => setFrom(e.target.value)} required style={inputStyle}>
             <option value="">Select a Starting Station</option>
             <optgroup label="LIRR Stations">
-                <option value="14">Stony Brook</option>
-                <option value="102">Jamaica</option>
-                <option value="179">Ronkonkoma</option>
-                <option value="27">Babylon</option>
+              {lirrStations.map(station => (
+                <option key={`from-lirr-${station.value}`} value={station.value}>{station.label}</option>
+              ))}
             </optgroup>
             <optgroup label="Amtrak Stations">
-                <option value="WAS">Washington DC (WAS)</option>
-                <option value="PHL">Philadelphia (PHL)</option>
-                <option value="BOS">Boston (BOS)</option>
+              {amtrakStations.map(station => (
+                <option key={`from-amtrak-${station.value}`} value={station.value}>{station.label}</option>
+              ))}
             </optgroup>
           </select>
         </div>
@@ -194,15 +451,14 @@ function UserInput({ onSearch, loading }) {
           <select value={to} onChange={(e) => setTo(e.target.value)} required style={inputStyle}>
             <option value="">Select an Ending Station</option>
             <optgroup label="LIRR Stations">
-                <option value="14">Stony Brook</option>
-                <option value="102">Jamaica</option>
-                <option value="179">Ronkonkoma</option>
-                <option value="27">Babylon</option>
+              {lirrStations.map(station => (
+                <option key={`to-lirr-${station.value}`} value={station.value}>{station.label}</option>
+              ))}
             </optgroup>
             <optgroup label="Amtrak Stations">
-                <option value="WAS">Washington DC (WAS)</option>
-                <option value="PHL">Philadelphia (PHL)</option>
-                <option value="BOS">Boston (BOS)</option>
+              {amtrakStations.map(station => (
+                <option key={`to-amtrak-${station.value}`} value={station.value}>{station.label}</option>
+              ))}
             </optgroup>
           </select>
         </div>

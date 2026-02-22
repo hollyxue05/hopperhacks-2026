@@ -8,6 +8,6 @@ import Page2 from './Page2.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LandingPage />
-    <Page2 />
+    {/* <Page2 /> */}
   </StrictMode>,
 )

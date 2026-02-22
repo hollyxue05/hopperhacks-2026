@@ -294,5 +294,22 @@ def plan_trip():
     print(f"DEBUG RESULT: Returning {len(final_results)} valid connection sets.", flush=True)
     return jsonify(final_results)
 
+@app.route('/api/details', methods=['POST'])
+def trip_details():
+    """Fetches the specific stop times for a selected train trip."""
+    data = request.json
+    trip_id = str(data.get('trip_id', '')).replace(" (Transfer)", "")
+    agency = data.get('agency')
+    
+    collection = db.amtrak_trips if agency == 'amtrak' else db.lirr_trips
+    
+    query = {"$or": [{"trip_id": trip_id}, {"route_id": trip_id}]} if agency == 'amtrak' else {"trip_id": trip_id}
+    trip = collection.find_one(query, {"_id": 0, "stop_times": 1})
+    
+    if trip and 'stop_times' in trip:
+        return jsonify(trip['stop_times'])
+    
+    return jsonify([])
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
