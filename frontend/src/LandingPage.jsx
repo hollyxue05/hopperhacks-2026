@@ -93,7 +93,7 @@ function LandingPage() {
   const [error, setError] = useState(null);
   const [currentOrigin, setCurrentOrigin] = useState("");
   const [currentDestination, setCurrentDestination] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   // State variables for trip details
   const [tripDetails, setTripDetails] = useState(null);
@@ -184,7 +184,7 @@ function LandingPage() {
           <h1 className="welcome">Welcome to RailroadRouter</h1>
             <div className="button">
               <button onClick={() => setDarkMode(!darkMode)}>
-                Toggle {darkMode ? "Light" : "Dark"} Mode
+                {darkMode ? "Light" : "Dark"} Mode
               </button>
             </div>
         </div>

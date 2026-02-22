@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchAllStations } from 'amtrak';
 import './MapBackground.css';
 import L from 'leaflet';
+import CursorTrail from "./CursorTrail";
 
 // This component automatically pans and zooms the map to fit the drawn route
 function RouteFitter({ coords }) {
@@ -70,6 +71,7 @@ export default function MapBackground({ fromStationCode, toStationCode }) {
 
   return (
     <div className="map-box">
+      <CursorTrail />
       <MapContainer
         center={[40.7506, -73.9935]} // NYC
         zoom={7}
