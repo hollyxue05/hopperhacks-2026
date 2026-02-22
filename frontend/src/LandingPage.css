@@ -24,7 +24,7 @@
 }
 
 .trip-input-container {
-  background: rgb(216, 194, 194);
+  background: rgb(162, 231, 251);
   padding: 2rem;
   border-radius: 15px;
   max-width: 450px;
@@ -32,7 +32,7 @@
 }
 
 .schedule-list-container{
-  background: rgb(216, 194, 194);
+  background: rgb(195, 183, 239);
   padding: 2rem;
   border-radius: 15px;
   max-width: 450px;
@@ -79,4 +79,9 @@ input:focus {
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.welcome{
+  padding: 10px;
+  font-style: italic;
 }

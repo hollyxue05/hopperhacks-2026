@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './LandingPage.css'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import MapBackground from './MapBackground';
 
 
 function LandingPage() {
@@ -11,15 +12,15 @@ function LandingPage() {
   return (
     
   <div className = "landing-page">
-    <h1>Welcome</h1>
+    <h1 className = "welcome">Welcome</h1>
     <div className = "map-and-tripInfo">
      
       <div className= "map-container">
-        <p>map goes here</p>
-        </div> 
+        <MapBackground />
+      </div> 
 
       <div className= "trip-container"> 
-        <h1>Plan your Trip</h1>
+        <h2>Plan your Trip</h2>
         <UserInput /> 
           <div className = "schedule-list-container">
             <h1>schedule goes here</h1>

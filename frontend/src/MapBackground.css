@@ -1,0 +1,18 @@
+.map-box {
+  width: 800px;          /* width of your map box */
+  height: 500px;         /* height of your map box */
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;      /* ensures map stays inside box */
+  margin: 20px auto;     /* center the box */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  background: white;
+}
+
+.station-dot {
+  background-color: #ff5722;  /* orange/red dot */
+  border-radius: 50%;         /* make it circular */
+  width: 10px;
+  height: 10px;
+  border: 2px solid white;    /* optional: white outline */
+}
