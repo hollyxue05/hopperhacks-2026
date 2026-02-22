@@ -1,52 +1,51 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import './LandingPage.css'
 import "react-datepicker/dist/react-datepicker.css";
 import MapBackground from './MapBackground';
 import lightImg from './images/light-image.png';
-import darkImg from './images/dark-image.png'; 
+import darkImg from './images/dark-image.png';
 
 // Dictionary to translate GTFS/Database IDs to readable names
 const stationMap = {
   // Transfer Hubs & Terminals
   "105": "Penn Station",
-  "237": "Penn Station", 
+  "237": "Penn Station",
   "NYP": "New York Penn Station",
-  "102": "Jamaica", 
-  "214": "Woodside", 
+  "102": "Jamaica",
+  "214": "Woodside",
   "54": "Woodside",
-  "55": "Forest Hills", 
+  "55": "Forest Hills",
   "56": "Forest Hills",
-  "107": "Kew Gardens", 
+  "107": "Kew Gardens",
 
   // Port Jefferson & Ronkonkoma Shared Stops
-  "132": "Mineola", 
-  "39": "Carle Place", 
-  "213": "Westbury", 
-  "92": "Hicksville", 
+  "132": "Mineola",
+  "39": "Carle Place",
+  "213": "Westbury",
+  "92": "Hicksville",
 
   // Port Jefferson Branch
-  "205": "Syosset", 
-  "40": "Cold Spring Harbor", 
-  "91": "Huntington", 
-  "78": "Greenlawn", 
-  "153": "Northport", 
-  "111": "Kings Park", 
-  "202": "Smithtown", 
-  "193": "St. James", 
-  "14": "Stony Brook", 
-  "164": "Port Jefferson", 
+  "205": "Syosset",
+  "40": "Cold Spring Harbor",
+  "91": "Huntington",
+  "78": "Greenlawn",
+  "153": "Northport",
+  "111": "Kings Park",
+  "202": "Smithtown",
+  "193": "St. James",
+  "14": "Stony Brook",
+  "164": "Port Jefferson",
 
   // Ronkonkoma Branch
-  "20": "Bethpage", 
-  "59": "Farmingdale", 
-  "165": "Pinelawn", 
-  "220": "Wyandanch", 
-  "44": "Deer Park", 
-  "29": "Brentwood", 
-  "33": "Central Islip", 
-  "179": "Ronkonkoma", 
+  "20": "Bethpage",
+  "59": "Farmingdale",
+  "165": "Pinelawn",
+  "220": "Wyandanch",
+  "44": "Deer Park",
+  "29": "Brentwood",
+  "33": "Central Islip",
+  "179": "Ronkonkoma",
 
-  // Amtrak Stations
   // Amtrak Northeast Regional Stops (BOS to WAS)
   "BOS": "Boston South Station",
   "BBY": "Boston Back Bay",
@@ -69,8 +68,8 @@ const stationMap = {
   "TRE": "Trenton",
   "PHL": "Philadelphia 30th Street",
   "WIL": "Wilmington",
-  "NWB": "Newark (DE)",
-  "ABD": "Aberdeen",
+  "NRK": "Newark (DE)",
+  "ABE": "Aberdeen",
   "BAL": "Baltimore Penn Station",
   "BWI": "BWI Marshall Airport",
   "NCR": "New Carrollton",
@@ -98,6 +97,8 @@ function LandingPage() {
   // State variables for trip details
   const [tripDetails, setTripDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+
+  const detailsRef = useRef(null);
 
   const handleSearch = async (searchParams) => {
     setLoading(true);
@@ -128,14 +129,14 @@ function LandingPage() {
 
   const handleTripSelection = async (trip) => {
     setDetailsLoading(true);
-    
+
     const isAmtrakFirst = trip.leg_type === "amtrak_first";
-    
+
     const primaryAgency = isAmtrakFirst ? "amtrak" : "lirr";
     const primaryTripId = isAmtrakFirst ? trip.amtrak_trip.trip_id : trip.lirr_trip.trip_id;
     const primaryOrigin = currentOrigin;
     const primaryDest = "NYP";
-    
+
     const secondaryAgency = isAmtrakFirst ? "lirr" : "amtrak";
     const firstConnection = trip.connections[0];
     const secondaryTripId = firstConnection.trip_id || firstConnection.train_num;
@@ -147,21 +148,21 @@ function LandingPage() {
         fetch('http://localhost:5000/api/details', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            trip_id: primaryTripId, 
-            agency: primaryAgency, 
-            origin: primaryOrigin, 
-            destination: primaryDest 
+          body: JSON.stringify({
+            trip_id: primaryTripId,
+            agency: primaryAgency,
+            origin: primaryOrigin,
+            destination: primaryDest
           }),
         }),
         fetch('http://localhost:5000/api/details', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            trip_id: secondaryTripId, 
-            agency: secondaryAgency, 
-            origin: secondaryOrigin, 
-            destination: secondaryDest 
+          body: JSON.stringify({
+            trip_id: secondaryTripId,
+            agency: secondaryAgency,
+            origin: secondaryOrigin,
+            destination: secondaryDest
           }),
         })
       ]);
@@ -169,19 +170,21 @@ function LandingPage() {
       const primaryStops = primaryRes.ok ? await primaryRes.json() : [];
       const secondaryStops = secondaryRes.ok ? await secondaryRes.json() : [];
 
-      setTripDetails({ 
-        tripInfo: trip, 
-        primaryStops: primaryStops, 
+      setTripDetails({
+        tripInfo: trip,
+        primaryStops: primaryStops,
         secondaryStops: secondaryStops,
         primaryAgency: primaryAgency,
         secondaryAgency: secondaryAgency,
         connectionInfo: firstConnection
       });
-        
+
       setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        if (detailsRef.current) {
+          detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 100);
-      
+
     } catch (err) {
       console.error('Failed to fetch detailed stops', err);
     } finally {
@@ -195,10 +198,10 @@ function LandingPage() {
         <div className="welcome-container">
           <div className="welcome-text">
             <h1 className="welcome">Welcome to RailroadRouter</h1>
-              <p className="welcome-subtext">
-                RailroadRouter syncs LIRR and Amtrak schedules into one real-time countdown to make your travel 
-                planning seamless and simple.
-              </p>
+            <p className="welcome-subtext">
+              RailroadRouter syncs LIRR and Amtrak schedules into one real-time countdown to make your travel
+              planning seamless and simple.
+            </p>
           </div>
 
           <img
@@ -239,8 +242,8 @@ function LandingPage() {
                 const isAmtrakFirst = trip.leg_type === "amtrak_first";
 
                 return (
-                  <button 
-                    key={idx} 
+                  <button
+                    key={idx}
                     onClick={() => handleTripSelection(trip)}
                     className="schedule-button"
                   >
@@ -299,68 +302,68 @@ function LandingPage() {
       </div>
 
       {(detailsLoading || tripDetails) && (
-        <div style={{ padding: '40px 20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+        <div ref={detailsRef} style={{ padding: '40px 20px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
           <hr style={{ border: 'none', borderTop: '2px solid #e5e7eb', marginBottom: '40px' }} />
-          
+
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '20px', color: darkMode ? 'white' : 'black' }}>
             Full Itinerary Stops
           </h2>
-          
+
           {detailsLoading ? (
-             <p style={{ color: '#4b5563' }}>Loading stop details...</p>
+            <p style={{ color: '#4b5563' }}>Loading stop details...</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-               
-               {/* Primary Leg */}
-               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                 <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
-                   Leg 1: {tripDetails.primaryAgency.toUpperCase()} 
-                 </h3>
-                 {tripDetails.primaryStops.length > 0 ? (
-                   <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-                     {tripDetails.primaryStops.map((stop, idx) => (
-                       <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.primaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                         <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
-                           {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
-                         </span>
-                         <span style={{ color: '#111827' }}>
-                           {formatStationName(stop.stop_id)}
-                         </span>
-                       </li>
-                     ))}
-                   </ul>
-                 ) : (
-                   <p>No detailed stop data is available for this leg.</p>
-                 )}
-               </div>
 
-               {/* Transfer Indicator */}
-               <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '8px', color: '#4b5563', fontWeight: 'bold' }}>
-                 Transfer at Penn Station
-               </div>
+              {/* Primary Leg */}
+              <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
+                  Leg 1: {tripDetails.primaryAgency.toUpperCase()}
+                </h3>
+                {tripDetails.primaryStops.length > 0 ? (
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                    {tripDetails.primaryStops.map((stop, idx) => (
+                      <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.primaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                        <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
+                          {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
+                        </span>
+                        <span style={{ color: '#111827' }}>
+                          {formatStationName(stop.stop_id)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No detailed stop data is available for this leg.</p>
+                )}
+              </div>
 
-               {/* Secondary Leg */}
-               <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                 <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
-                   Leg 2: {tripDetails.secondaryAgency.toUpperCase()} Train {tripDetails.connectionInfo.train_num}
-                 </h3>
-                 {tripDetails.secondaryStops.length > 0 ? (
-                   <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
-                     {tripDetails.secondaryStops.map((stop, idx) => (
-                       <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.secondaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                         <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
-                           {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
-                         </span>
-                         <span style={{ color: '#111827' }}>
-                           {formatStationName(stop.stop_id)}
-                         </span>
-                       </li>
-                     ))}
-                   </ul>
-                 ) : (
-                   <p>No detailed stop data is available for this leg.</p>
-                 )}
-               </div>
+              {/* Transfer Indicator */}
+              <div style={{ textAlign: 'center', padding: '10px', backgroundColor: '#f3f4f6', borderRadius: '8px', color: '#4b5563', fontWeight: 'bold' }}>
+                Transfer at Penn Station
+              </div>
+
+              {/* Secondary Leg */}
+              <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', margin: '0 0 20px 0', color: '#111827' }}>
+                  Leg 2: {tripDetails.secondaryAgency.toUpperCase()} Train {tripDetails.connectionInfo.train_num}
+                </h3>
+                {tripDetails.secondaryStops.length > 0 ? (
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                    {tripDetails.secondaryStops.map((stop, idx) => (
+                      <li key={idx} style={{ padding: '10px 0', display: 'flex', borderBottom: idx !== tripDetails.secondaryStops.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                        <span style={{ width: '80px', fontWeight: 'bold', color: '#374151' }}>
+                          {stop.arrival_time ? stop.arrival_time.substring(0, 5) : "--:--"}
+                        </span>
+                        <span style={{ color: '#111827' }}>
+                          {formatStationName(stop.stop_id)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No detailed stop data is available for this leg.</p>
+                )}
+              </div>
 
             </div>
           )}
@@ -382,12 +385,12 @@ function UserInput({ onSearch, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (from === to) {
       setValidationError("Starting and ending stations cannot be the same.");
       return;
     }
-    
+
     setValidationError("");
 
     onSearch({
@@ -404,7 +407,7 @@ function UserInput({ onSearch, loading }) {
     const tempFrom = from;
     setFrom(to);
     setTo(tempFrom);
-    setValidationError(""); 
+    setValidationError("");
   };
 
   const inputStyle = { padding: '12px', width: '100%', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', fontSize: '1rem' };
@@ -442,17 +445,17 @@ function UserInput({ onSearch, loading }) {
   return (
     <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
       <form onSubmit={handleSubmit}>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>From:</label>
-            <select 
-              value={from} 
+            <select
+              value={from}
               onChange={(e) => {
                 setFrom(e.target.value);
-                setValidationError(""); 
-              }} 
-              required 
+                setValidationError("");
+              }}
+              required
               style={inputStyle}
             >
               <option value="">Starting Station</option>
@@ -469,15 +472,15 @@ function UserInput({ onSearch, loading }) {
             </select>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleSwap}
-            style={{ 
-              marginTop: '28px', 
-              padding: '10px 15px', 
-              backgroundColor: '#f3f4f6', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '8px', 
+            style={{
+              marginTop: '28px',
+              padding: '10px 15px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
               cursor: 'pointer',
               fontWeight: 'bold',
               color: '#4b5563',
@@ -486,18 +489,18 @@ function UserInput({ onSearch, loading }) {
             onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
             onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
           >
-            ↔ 
+            ↔
           </button>
 
           <div style={{ flex: 1 }}>
             <label style={labelStyle}>To:</label>
-            <select 
-              value={to} 
+            <select
+              value={to}
               onChange={(e) => {
                 setTo(e.target.value);
                 setValidationError("");
-              }} 
-              required 
+              }}
+              required
               style={inputStyle}
             >
               <option value="">Destination Station</option>
@@ -544,9 +547,9 @@ function UserInput({ onSearch, loading }) {
           </div>
         )}
 
-        <button 
-          type="submit" 
-          disabled={loading} 
+        <button
+          type="submit"
+          disabled={loading}
           style={{ width: '100%', padding: '14px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold', transition: 'background-color 0.2s' }}
         >
           {loading ? 'Searching...' : 'Find Schedule'}

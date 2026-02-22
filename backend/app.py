@@ -222,7 +222,7 @@ def plan_trip():
     print(f"\n--- DEBUG START: Request from {origin} to {destination} ---", flush=True)
     
     # Updated Amtrak codes to match your new list
-    AMTRAK_CODES = ["WAS", "PHL", "BOS", "ABD", "BAL", "BBY", "BDP", "BWI", "KIN", "MET", "MYS", "NBK", "NCR", "NHV", "NLC", "NRO", "NWB", "EWR", "NWK", "OSW", "PNC", "PVD", "RTE", "STM", "TRE", "WLY", "WIL"]
+    AMTRAK_CODES = ["WAS", "PHL", "BOS", "ABD", "BAL", "BBY", "BDP", "BWI", "KIN", "MET", "MYS", "NBK", "NCR", "NHV", "NLC", "NRO", "NWB", "EWR", "NWK", "OSW", "PNC", "PVD", "RTE", "STM", "TRE", "WLY", "WIL", "NRK"]
     final_results = []
     
     if origin in AMTRAK_CODES:
