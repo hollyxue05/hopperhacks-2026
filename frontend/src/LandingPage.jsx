@@ -181,12 +181,25 @@ function LandingPage() {
     <div className={darkMode ? "landingpage dark" : "landingpage light"}>
       <div>
         <div className="welcome-container">
-          <h1 className="welcome">Welcome to RailroadRouter</h1>
-            <div className="button">
-              <button onClick={() => setDarkMode(!darkMode)}>
-                {darkMode ? "Light" : "Dark"} Mode
-              </button>
-            </div>
+          <div className="welcome-text">
+            <h1 className="welcome">Welcome to RailroadRouter</h1>
+              <p className="welcome-subtext">
+                RailroadRouter syncs LIRR and Amtrak schedules into one real-time countdown to make your travel 
+                planning seamless and simple.
+              </p>
+          </div>
+
+          <img
+            src={darkMode ? darkImg : lightImg}
+            alt="Theme image"
+            className="theme-image"
+          />
+
+          <div className="small-button">
+            <button onClick={() => setDarkMode(!darkMode)}>
+              {darkMode ? "Light" : "Dark"} Mode
+            </button>
+          </div>
         </div>
       </div>
 
