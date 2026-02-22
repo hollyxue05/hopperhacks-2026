@@ -132,25 +132,37 @@ function LandingPage() {
     const isAmtrakFirst = trip.leg_type === "amtrak_first";
     
     const primaryAgency = isAmtrakFirst ? "amtrak" : "lirr";
-    const primaryTripId = isAmtrakFirst ? trip.amtrak_trip.train_num : trip.lirr_trip.trip_id;
+    const primaryTripId = isAmtrakFirst ? trip.amtrak_trip.trip_id : trip.lirr_trip.trip_id;
+    const primaryOrigin = currentOrigin;
+    const primaryDest = "NYP";
     
     const secondaryAgency = isAmtrakFirst ? "lirr" : "amtrak";
-    // Default to displaying the first connection option
     const firstConnection = trip.connections[0];
-    const secondaryTripId = firstConnection.train_num;
+    const secondaryTripId = firstConnection.trip_id || firstConnection.train_num;
+    const secondaryOrigin = "NYP";
+    const secondaryDest = currentDestination;
 
     try {
-      // Fetch both legs concurrently
       const [primaryRes, secondaryRes] = await Promise.all([
         fetch('http://localhost:5000/api/details', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trip_id: primaryTripId, agency: primaryAgency }),
+          body: JSON.stringify({ 
+            trip_id: primaryTripId, 
+            agency: primaryAgency, 
+            origin: primaryOrigin, 
+            destination: primaryDest 
+          }),
         }),
         fetch('http://localhost:5000/api/details', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trip_id: secondaryTripId, agency: secondaryAgency }),
+          body: JSON.stringify({ 
+            trip_id: secondaryTripId, 
+            agency: secondaryAgency, 
+            origin: secondaryOrigin, 
+            destination: secondaryDest 
+          }),
         })
       ]);
 
@@ -353,9 +365,18 @@ function UserInput({ onSearch, loading }) {
   const [bufferTime, setBufferTime] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [time, setTime] = useState("");
+  const [validationError, setValidationError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (from === to) {
+      setValidationError("Starting and ending stations cannot be the same.");
+      return;
+    }
+    
+    setValidationError("");
+
     onSearch({
       origin: from,
       destination: to,
@@ -366,101 +387,119 @@ function UserInput({ onSearch, loading }) {
     });
   };
 
+  const handleSwap = () => {
+    const tempFrom = from;
+    setFrom(to);
+    setTo(tempFrom);
+    setValidationError(""); 
+  };
+
   const inputStyle = { padding: '12px', width: '100%', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', fontSize: '1rem' };
   const labelStyle = { display: 'block', fontWeight: '600', marginBottom: '8px', color: '#374151' };
   const groupStyle = { marginBottom: '20px' };
 
   const lirrStations = [
-    { value: "20", label: "Bethpage" },
-    { value: "29", label: "Brentwood" },
-    { value: "39", label: "Carle Place" },
-    { value: "33", label: "Central Islip" },
     { value: "40", label: "Cold Spring Harbor" },
-    { value: "44", label: "Deer Park" },
-    { value: "59", label: "Farmingdale" },
-    { value: "78", label: "Greenlawn" },
     { value: "92", label: "Hicksville" },
     { value: "91", label: "Huntington" },
     { value: "102", label: "Jamaica" },
-    { value: "111", label: "Kings Park" },
-    { value: "132", label: "Mineola" },
-    { value: "153", label: "Northport" },
-    { value: "165", label: "Pinelawn" },
-    { value: "164", label: "Port Jefferson" },
     { value: "179", label: "Ronkonkoma" },
-    { value: "202", label: "Smithtown" },
-    { value: "193", label: "St. James" },
     { value: "14", label: "Stony Brook" },
     { value: "205", label: "Syosset" },
-    { value: "213", label: "Westbury" },
-    { value: "220", label: "Wyandanch" }
   ];
 
   const amtrakStations = [
-    { value: "ABD", label: "Aberdeen" },
     { value: "BAL", label: "Baltimore Penn Station" },
     { value: "BBY", label: "Boston Back Bay" },
     { value: "BOS", label: "Boston South Station" },
     { value: "BDP", label: "Bridgeport" },
     { value: "BWI", label: "BWI Marshall Airport" },
-    { value: "KIN", label: "Kingston" },
     { value: "MET", label: "Metropark" },
-    { value: "MYS", label: "Mystic" },
     { value: "NBK", label: "New Brunswick" },
     { value: "NCR", label: "New Carrollton" },
     { value: "NHV", label: "New Haven Union Station" },
-    { value: "NLC", label: "New London" },
-    { value: "NRO", label: "New Rochelle" },
-    { value: "NWB", label: "Newark (DE)" },
-    { value: "EWR", label: "Newark Airport" },
     { value: "NWK", label: "Newark Penn Station" },
-    { value: "OSW", label: "Old Saybrook" },
     { value: "PHL", label: "Philadelphia 30th Street" },
-    { value: "PNC", label: "Princeton Junction" },
     { value: "PVD", label: "Providence" },
-    { value: "RTE", label: "Route 128" },
-    { value: "STM", label: "Stamford" },
     { value: "TRE", label: "Trenton" },
     { value: "WAS", label: "Washington DC Union" },
-    { value: "WLY", label: "Westerly" },
     { value: "WIL", label: "Wilmington" }
   ];
 
   return (
     <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
       <form onSubmit={handleSubmit}>
-        <div style={groupStyle}>
-          <label style={labelStyle}>From:</label>
-          <select value={from} onChange={(e) => setFrom(e.target.value)} required style={inputStyle}>
-            <option value="">Select a Starting Station</option>
-            <optgroup label="LIRR Stations">
-              {lirrStations.map(station => (
-                <option key={`from-lirr-${station.value}`} value={station.value}>{station.label}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Amtrak Stations">
-              {amtrakStations.map(station => (
-                <option key={`from-amtrak-${station.value}`} value={station.value}>{station.label}</option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>From:</label>
+            <select 
+              value={from} 
+              onChange={(e) => {
+                setFrom(e.target.value);
+                setValidationError(""); 
+              }} 
+              required 
+              style={inputStyle}
+            >
+              <option value="">Starting Station</option>
+              <optgroup label="LIRR Stations">
+                {lirrStations.map(station => (
+                  <option key={`from-lirr-${station.value}`} value={station.value}>{station.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Amtrak Stations">
+                {amtrakStations.map(station => (
+                  <option key={`from-amtrak-${station.value}`} value={station.value}>{station.label}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
 
-        <div style={groupStyle}>
-          <label style={labelStyle}>To:</label>
-          <select value={to} onChange={(e) => setTo(e.target.value)} required style={inputStyle}>
-            <option value="">Select an Ending Station</option>
-            <optgroup label="LIRR Stations">
-              {lirrStations.map(station => (
-                <option key={`to-lirr-${station.value}`} value={station.value}>{station.label}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Amtrak Stations">
-              {amtrakStations.map(station => (
-                <option key={`to-amtrak-${station.value}`} value={station.value}>{station.label}</option>
-              ))}
-            </optgroup>
-          </select>
+          <button 
+            type="button" 
+            onClick={handleSwap}
+            style={{ 
+              marginTop: '28px', 
+              padding: '10px 15px', 
+              backgroundColor: '#f3f4f6', 
+              border: '1px solid #d1d5db', 
+              borderRadius: '8px', 
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              color: '#4b5563',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+          >
+            ↔ 
+          </button>
+
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>To:</label>
+            <select 
+              value={to} 
+              onChange={(e) => {
+                setTo(e.target.value);
+                setValidationError("");
+              }} 
+              required 
+              style={inputStyle}
+            >
+              <option value="">Destination Station</option>
+              <optgroup label="LIRR Stations">
+                {lirrStations.map(station => (
+                  <option key={`to-lirr-${station.value}`} value={station.value}>{station.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Amtrak Stations">
+                {amtrakStations.map(station => (
+                  <option key={`to-amtrak-${station.value}`} value={station.value}>{station.label}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
@@ -485,6 +524,12 @@ function UserInput({ onSearch, loading }) {
             <option value={120}>2 hours</option>
           </select>
         </div>
+
+        {validationError && (
+          <div style={{ color: '#dc2626', backgroundColor: '#fee2e2', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontWeight: '500', textAlign: 'center' }}>
+            {validationError}
+          </div>
+        )}
 
         <button 
           type="submit" 

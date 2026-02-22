@@ -11,7 +11,6 @@ client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000
 db = client["lirr_transit"]
 
 def convert_to_minutes(time_str):
-    """Converts HH:MM:SS or HH:MM to total minutes for easier calculation."""
     try:
         parts = time_str.split(':')
         h = int(parts[0])
@@ -22,7 +21,6 @@ def convert_to_minutes(time_str):
         return 0
 
 def get_query_filter(station_id):
-    """Creates a filter that matches the station ID as a string, integer, or regex."""
     try:
         int_id = int(station_id)
         return {"$in": [str(station_id), int_id, re.compile(f"^{station_id}")]}
@@ -30,7 +28,6 @@ def get_query_filter(station_id):
         return {"$in": [str(station_id), re.compile(f"^{station_id}")]}
 
 def get_multiple_query_filter(station_ids):
-    """Creates a filter for multiple possible destination IDs."""
     conditions = []
     for station_id in station_ids:
         try:
@@ -41,7 +38,6 @@ def get_multiple_query_filter(station_ids):
     return {"$in": conditions}
 
 def find_direct_legs(origin_ids, dest_ids, target_mins, search_type="depart_by"):
-    """Finds single seat trips between origin(s) and destination(s)."""
     if not isinstance(origin_ids, list):
         origin_ids = [origin_ids]
     if not isinstance(dest_ids, list):
@@ -91,16 +87,13 @@ def find_direct_legs(origin_ids, dest_ids, target_mins, search_type="depart_by")
     return results
 
 def get_lirr_schedule(origin_id, dest_id, search_type, target_time):
-    """Queries LIRR trips from origin to destination, including transfers."""
     target_mins = convert_to_minutes(target_time)
     
     origin_list = ["105", "237"] if origin_id == "NYP" else [origin_id]
     dest_list = ["105", "237"] if dest_id == "NYP" else [dest_id]
 
-    # 1. Search for direct trips first
     results = find_direct_legs(origin_list, dest_list, target_mins, search_type)
     
-    # 2. Search for transfer options if heading to or from Penn Station
     transfer_hubs = ["102", "54", "56"]
     
     if origin_id != "NYP" and dest_id == "NYP":
@@ -152,7 +145,6 @@ def get_lirr_schedule(origin_id, dest_id, search_type, target_time):
     return unique_results[:20]
 
 def get_amtrak_schedule(origin_id, dest_id, search_type="depart_by", target_time="00:00"):
-    """Queries Amtrak trips matching the provided origin and destination."""
     origin_filter = get_query_filter(origin_id)
     dest_filter = get_query_filter(dest_id)
     
@@ -180,6 +172,7 @@ def get_amtrak_schedule(origin_id, dest_id, search_type="depart_by", target_time
                 if search_type == "depart_by" and dep_mins >= target_mins:
                     results.append({
                         "train_num": trip.get('route_id', trip.get('trip_id', 'Amtrak')),
+                        "trip_id": trip.get('trip_id', 'Unknown'),
                         "departure": dep_time,
                         "arrival": arr_time,
                         "dep_mins": dep_mins,
@@ -189,6 +182,7 @@ def get_amtrak_schedule(origin_id, dest_id, search_type="depart_by", target_time
                 elif search_type == "arrive_by" and arr_mins <= target_mins:
                     results.append({
                         "train_num": trip.get('route_id', trip.get('trip_id', 'Amtrak')),
+                        "trip_id": trip.get('trip_id', 'Unknown'),
                         "departure": dep_time,
                         "arrival": arr_time,
                         "dep_mins": dep_mins,
@@ -227,7 +221,8 @@ def plan_trip():
     
     print(f"\n--- DEBUG START: Request from {origin} to {destination} ---", flush=True)
     
-    AMTRAK_CODES = ["WAS", "PHL", "BOS"]
+    # Updated Amtrak codes to match your new list
+    AMTRAK_CODES = ["WAS", "PHL", "BOS", "ABD", "BAL", "BBY", "BDP", "BWI", "KIN", "MET", "MYS", "NBK", "NCR", "NHV", "NLC", "NRO", "NWB", "EWR", "NWK", "OSW", "PNC", "PVD", "RTE", "STM", "TRE", "WLY", "WIL"]
     final_results = []
     
     if origin in AMTRAK_CODES:
@@ -245,6 +240,7 @@ def plan_trip():
                 if transition_time <= time_diff <= max_wait_time:
                     valid_lirr_options.append({
                         "train_num": lirr['trip_id'],
+                        "trip_id": lirr['trip_id'],
                         "departure": lirr['departure'],
                         "arrival": lirr['arrival']
                     })
@@ -253,6 +249,7 @@ def plan_trip():
                 final_results.append({
                     "amtrak_trip": {
                         "train_num": amtrak['train_num'],
+                        "trip_id": amtrak['trip_id'],
                         "departure": amtrak['departure'],
                         "arrival": amtrak['arrival'],
                         "status": amtrak['status']
@@ -275,6 +272,7 @@ def plan_trip():
                 if transition_time <= time_diff <= max_wait_time:
                     valid_amtrak_options.append({
                         "train_num": amtrak['train_num'],
+                        "trip_id": amtrak['trip_id'],
                         "departure": amtrak['departure'],
                         "arrival": amtrak['arrival'],
                         "status": amtrak['status']
@@ -296,18 +294,61 @@ def plan_trip():
 
 @app.route('/api/details', methods=['POST'])
 def trip_details():
-    """Fetches the specific stop times for a selected train trip."""
     data = request.json
-    trip_id = str(data.get('trip_id', '')).replace(" (Transfer)", "")
+    trip_id_str = str(data.get('trip_id', '')).replace(" (Transfer)", "")
     agency = data.get('agency')
+    origin = data.get('origin')
+    destination = data.get('destination')
     
     collection = db.amtrak_trips if agency == 'amtrak' else db.lirr_trips
     
-    query = {"$or": [{"trip_id": trip_id}, {"route_id": trip_id}]} if agency == 'amtrak' else {"trip_id": trip_id}
-    trip = collection.find_one(query, {"_id": 0, "stop_times": 1})
+    try:
+        trip_id_int = int(trip_id_str)
+        trip_query = {"$in": [trip_id_str, trip_id_int]}
+    except ValueError:
+        trip_query = trip_id_str
+        
+    if origin and destination:
+        origin_regex = re.compile(f"^{origin}", re.IGNORECASE)
+        dest_regex = re.compile(f"^{destination}", re.IGNORECASE)
+        
+        query_with_stops = {
+            "$and": [
+                {"$or": [{"trip_id": trip_query}, {"route_id": trip_query}, {"trip_short_name": trip_query}]},
+                {"stop_times.stop_id": origin_regex},
+                {"stop_times.stop_id": dest_regex}
+            ]
+        }
+        trip = collection.find_one(query_with_stops, {"_id": 0, "stop_times": 1})
+        
+        if not trip:
+            query_basic = {"$or": [{"trip_id": trip_query}, {"route_id": trip_query}, {"trip_short_name": trip_query}]}
+            trip = collection.find_one(query_basic, {"_id": 0, "stop_times": 1})
+    else:
+        query_basic = {"$or": [{"trip_id": trip_query}, {"route_id": trip_query}, {"trip_short_name": trip_query}]}
+        trip = collection.find_one(query_basic, {"_id": 0, "stop_times": 1})
     
     if trip and 'stop_times' in trip:
-        return jsonify(trip['stop_times'])
+        stops = trip['stop_times']
+        
+        if origin and destination:
+            start_idx = -1
+            end_idx = -1
+            
+            for i, stop in enumerate(stops):
+                stop_id_upper = str(stop.get('stop_id', '')).upper()
+                if stop_id_upper.startswith(str(origin).upper()):
+                    start_idx = i
+                if stop_id_upper.startswith(str(destination).upper()):
+                    end_idx = i
+                    
+            if start_idx != -1 and end_idx != -1:
+                if start_idx <= end_idx:
+                    return jsonify(stops[start_idx:end_idx + 1])
+                else:
+                    return jsonify(stops[end_idx:start_idx + 1][::-1])
+                    
+        return jsonify(stops)
     
     return jsonify([])
 
